@@ -23,6 +23,7 @@ CI-CD-Pipeline-Failure-Prediction/
 │   └── 01_Comprehensive_EDA.ipynb   # Full exploratory data analysis
 │
 ├── src/                    # Source code modules
+│   ├── pipeline/           # End-to-end preprocessing pipeline runner
 │   ├── preprocessing/      # Cleaning, feature engineering & encoding scripts
 │   ├── models/             # Model training & evaluation
 │   └── visualization/      # Plotting utilities
@@ -58,7 +59,9 @@ CI-CD-Pipeline-Failure-Prediction/
 | **Repository** | `gh_team_size`, `gh_sloc`, `gh_repo_age`, `gh_lang` |
 | **Git Diff** | `git_diff_src_churn`, `gh_diff_files_modified`, `gh_diff_tests_added` |
 | **Code Quality** | `gh_test_lines_per_kloc`, `gh_test_cases_per_kloc` |
-| **Build / Test** | `tr_duration`, `tr_log_num_tests_run`, `tr_log_num_tests_failed` |
+| **Pre-build Signals** | `gh_is_pr`, `gh_lang`, `git_prev_commit_resolution_status`, grouped `git_branch` |
+
+> Build-log and duration fields such as `tr_duration`, `tr_log_num_tests_run`, and `tr_log_num_tests_failed` are useful for post-build analysis, but are excluded from the model-ready pre-build prediction dataset to avoid leakage.
 
 See the **Column Data Dictionary** inside `01_Comprehensive_EDA.ipynb` for a full description of every column.
 
@@ -100,6 +103,34 @@ Download `data.csv` from [TravisTorrent](https://travistorrent.testroots.org/) a
 ```bash
 jupyter notebook notebooks/01_Comprehensive_EDA.ipynb
 ```
+
+---
+
+## ML Preprocessing Pipeline
+
+Run the full data engineering pipeline:
+
+```bash
+python main.py
+```
+
+To resume from a later stage:
+
+```bash
+python main.py --from-step scale_balance
+```
+
+The same steps can also be run individually:
+
+```bash
+python src/preprocessing/clean_data.py
+python src/preprocessing/feature_engineering.py
+python src/preprocessing/encode.py
+python src/preprocessing/split.py
+python src/preprocessing/scale_balance.py
+```
+
+The project objective is prediction before build completion, so the model-ready scaling/balancing step excludes build-log and duration fields that would leak post-build information. Categorical decisions are made from the training split only: selected pre-build categorical columns are analyzed, low-cardinality safe features are one-hot encoded, the scaler is fitted on train only, and SMOTE is applied only to the scaled training set.
 
 ---
 
