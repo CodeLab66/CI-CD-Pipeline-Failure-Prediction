@@ -8,6 +8,7 @@ superset
 scikit-learn>=1.3
 imbalanced-learn
 xgboost
+lightgbm
 lime
 shap
 

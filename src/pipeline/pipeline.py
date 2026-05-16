@@ -19,9 +19,10 @@ from src.preprocessing.encode import encode_data
 from src.preprocessing.feature_engineering import engineer_features
 from src.preprocessing.scale_balance import scale_and_balance
 from src.preprocessing.split import split_data
+from src.training.train_model import train_models
 
 
-STEPS = ['clean', 'feature', 'encode', 'split', 'scale_balance']
+STEPS = ['clean', 'feature', 'encode', 'split', 'scale_balance', 'train']
 
 
 def outputs_exist(paths):
@@ -97,6 +98,16 @@ def run_pipeline(args):
                 os.path.join(args.scaled_balanced_dir, 'scale_balance_metadata.json'),
             ],
         },
+        'train': {
+            'func': lambda: train_models(args),
+            'outputs': [
+                os.path.join(args.output_dir, 'best_model.joblib'),
+                os.path.join(args.output_dir, 'model_metrics.csv'),
+                os.path.join(args.output_dir, 'model_metrics.json'),
+                os.path.join(args.output_dir, 'confusion_matrix.png'),
+                os.path.join(args.output_dir, 'roc_curve.png'),
+            ],
+        },
     }
 
     print('Selected pipeline steps:')
@@ -131,6 +142,33 @@ def parse_args():
         '--scaled-balanced-dir',
         default='data/scaled_balanced',
         help='Directory for scaled and balanced model-ready data',
+    )
+    parser.add_argument(
+        '--input-dir',
+        help='Directory containing scaled/balanced processed CSV files for training',
+    )
+    parser.add_argument('--output-dir', default='models', help='Directory for trained model artifacts')
+    parser.add_argument(
+        '--tune',
+        action='store_true',
+        help='Tune the top two validation models with RandomizedSearchCV during training',
+    )
+    parser.add_argument('--tune-iter', type=int, default=12, help='RandomizedSearchCV iterations per tuned model')
+    parser.add_argument(
+        '--max-train-rows',
+        type=int,
+        help='Optional stratified training sample size for faster experiments',
+    )
+    parser.add_argument(
+        '--max-eval-rows',
+        type=int,
+        help='Optional stratified validation/test sample size for faster experiments',
+    )
+    parser.add_argument(
+        '--read-chunksize',
+        type=int,
+        default=100_000,
+        help='CSV rows per chunk when sampling large processed files for training',
     )
     parser.add_argument('--chunk-size', default=250_000, type=int, help='Chunk size for raw cleaning')
     parser.add_argument(

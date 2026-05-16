@@ -25,7 +25,7 @@ CI-CD-Pipeline-Failure-Prediction/
 ├── src/                    # Source code modules
 │   ├── pipeline/           # End-to-end preprocessing pipeline runner
 │   ├── preprocessing/      # Cleaning, feature engineering & encoding scripts
-│   ├── models/             # Model training & evaluation
+│   ├── training/           # Model training & evaluation code
 │   └── visualization/      # Plotting utilities
 │
 ├── models/                 # Saved model artifacts (git-ignored)
@@ -108,7 +108,7 @@ jupyter notebook notebooks/01_Comprehensive_EDA.ipynb
 
 ## ML Preprocessing Pipeline
 
-Run the full data engineering pipeline:
+Run the full data engineering and model-training pipeline:
 
 ```bash
 python main.py
@@ -120,6 +120,26 @@ To resume from a later stage:
 python main.py --from-step scale_balance
 ```
 
+Train only from the already processed model-ready files:
+
+```bash
+python main.py --only-step train
+```
+
+For a fast experiment while developing, use stratified samples from the large processed CSVs:
+
+```bash
+python main.py --only-step train --max-train-rows 10000 --max-eval-rows 5000
+```
+
+To run the proposal's RandomizedSearchCV tuning on the top two validation models:
+
+```bash
+python main.py --only-step train --tune --tune-iter 12
+```
+
+Training reads `data/scaled_balanced/balanced_train_data.csv` and evaluates on the untouched scaled validation/test files. It writes `models/best_model.joblib`, `models/model_metrics.csv`, `models/model_metrics.json`, ROC/confusion-matrix plots, and feature-importance artifacts.
+
 The same steps can also be run individually:
 
 ```bash
@@ -128,6 +148,7 @@ python src/preprocessing/feature_engineering.py
 python src/preprocessing/encode.py
 python src/preprocessing/split.py
 python src/preprocessing/scale_balance.py
+python src/training/train_model.py
 ```
 
 The project objective is prediction before build completion, so the model-ready scaling/balancing step excludes build-log and duration fields that would leak post-build information. Categorical decisions are made from the training split only: selected pre-build categorical columns are analyzed, low-cardinality safe features are one-hot encoded, the scaler is fitted on train only, and SMOTE is applied only to the scaled training set.
