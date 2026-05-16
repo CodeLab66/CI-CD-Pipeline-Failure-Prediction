@@ -23,8 +23,7 @@ CI-CD-Pipeline-Failure-Prediction/
 │   └── 01_Comprehensive_EDA.ipynb   # Full exploratory data analysis
 │
 ├── src/                    # Source code modules
-│   ├── data/               # Data loading & cleaning scripts
-│   ├── features/           # Feature engineering
+│   ├── preprocessing/      # Cleaning, feature engineering & encoding scripts
 │   ├── models/             # Model training & evaluation
 │   └── visualization/      # Plotting utilities
 │
