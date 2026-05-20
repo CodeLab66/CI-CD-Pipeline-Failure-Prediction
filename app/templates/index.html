@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CI/CD Failure Prediction Console</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero-panel">
+      <div>
+        <p class="eyebrow">Live ML Operations Console</p>
+        <h1>CI/CD Failure Prediction</h1>
+        <p class="lede">Analyze a build before it runs, inspect the model path, and see the final failure probability with the trained accuracy report.</p>
+      </div>
+      <div class="hero-metrics" aria-label="Model test metrics">
+        <div>
+          <span id="accuracyMetric">--</span>
+          <small>Accuracy</small>
+        </div>
+        <div>
+          <span id="f1Metric">--</span>
+          <small>F1 score</small>
+        </div>
+        <div>
+          <span id="aucMetric">--</span>
+          <small>ROC-AUC</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="console-grid">
+      <form id="predictionForm" class="control-surface">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Build Input</p>
+            <h2>Signal Controls</h2>
+          </div>
+          <button class="ghost-button" type="button" id="resetButton">Reset</button>
+        </div>
+        <div id="formFields" class="field-grid"></div>
+        <button class="primary-button" type="submit">
+          <span>Run Prediction</span>
+          <strong>Live</strong>
+        </button>
+      </form>
+
+      <section class="result-surface">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Prediction</p>
+            <h2>Risk Output</h2>
+          </div>
+          <span id="modelName" class="model-pill">loading</span>
+        </div>
+
+        <div class="probability-orbit" aria-label="Failure probability">
+          <div class="ring">
+            <span id="failureProbability">--%</span>
+            <small>Failure probability</small>
+          </div>
+        </div>
+
+        <div class="prediction-band">
+          <div>
+            <small>Prediction</small>
+            <strong id="predictionLabel">Waiting for input</strong>
+          </div>
+          <div>
+            <small>Confidence</small>
+            <strong id="confidenceLabel">--</strong>
+          </div>
+          <div>
+            <small>Risk band</small>
+            <strong id="riskLabel">--</strong>
+          </div>
+        </div>
+
+        <ol id="traceList" class="trace-list"></ol>
+      </section>
+    </section>
+
+    <section class="details-grid">
+      <article class="panel">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Step Details</p>
+            <h2>What Happens</h2>
+          </div>
+        </div>
+        <div id="pipelineSteps" class="step-list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Model Comparison</p>
+            <h2>Validation Results</h2>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Accuracy</th>
+                <th>F1</th>
+                <th>ROC-AUC</th>
+              </tr>
+            </thead>
+            <tbody id="metricsTable"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="details-grid bottom">
+      <article class="panel">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Feature Impact</p>
+            <h2>Top Signals</h2>
+          </div>
+        </div>
+        <div id="featureBars" class="feature-bars"></div>
+      </article>
+
+      <article class="panel">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Evaluation Artifacts</p>
+            <h2>Saved Outputs</h2>
+          </div>
+        </div>
+        <ul id="artifactList" class="artifact-list"></ul>
+        <div class="image-links">
+          <a href="/models/raw_confusion_matrix.png" aria-disabled="true">Confusion matrix saved in models/</a>
+          <a href="/models/raw_roc_curve.png" aria-disabled="true">ROC curve saved in models/</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

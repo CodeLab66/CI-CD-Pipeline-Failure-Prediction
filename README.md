@@ -108,6 +108,48 @@ jupyter notebook notebooks/01_Comprehensive_EDA.ipynb
 
 ## ML Preprocessing Pipeline
 
+## Interactive Frontend
+
+Run the futuristic Flask dashboard:
+
+```bash
+python3 run_frontend.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:5000
+```
+
+Frontend files:
+
+```text
+app/app.py                 # Flask routes and API endpoints
+app/model_service.py       # Loads the trained model, metrics, and prediction service
+app/templates/index.html   # Dashboard layout
+app/static/css/styles.css  # Futuristic responsive UI
+app/static/js/app.js       # Interactive controls, API calls, live step trace
+run_frontend.py            # Simple server launcher
+tests/test_frontend_app.py # API and page smoke tests
+```
+
+The dashboard is linked to `models/best_raw_model.joblib` and displays the saved test accuracy, F1 score, ROC-AUC, validation model comparison, feature importance, prediction confidence, and each processing step used during inference.
+
+Run the frontend tests:
+
+```bash
+python3 -m unittest tests/test_frontend_app.py
+```
+
+For a clean large-file training run directly from `data/data.csv`, use:
+
+```bash
+python src/training/train_from_raw.py --input data/data.csv --output-dir models --max-rows 100000
+```
+
+This reads the 3.5 GB CSV in chunks, keeps a stratified sample, uses only pre-build features, trains Logistic Regression, Random Forest, HistGradientBoosting, and XGBoost when installed, then saves `models/best_raw_model.joblib`, `models/raw_model_metrics.csv`, `models/raw_model_report.json`, `models/raw_confusion_matrix.png`, and `models/raw_roc_curve.png`.
+
 Run the full data engineering and model-training pipeline:
 
 ```bash
@@ -149,6 +191,7 @@ python src/preprocessing/encode.py
 python src/preprocessing/split.py
 python src/preprocessing/scale_balance.py
 python src/training/train_model.py
+python src/training/train_from_raw.py
 ```
 
 The project objective is prediction before build completion, so the model-ready scaling/balancing step excludes build-log and duration fields that would leak post-build information. Categorical decisions are made from the training split only: selected pre-build categorical columns are analyzed, low-cardinality safe features are one-hot encoded, the scaler is fitted on train only, and SMOTE is applied only to the scaled training set.

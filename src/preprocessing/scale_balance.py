@@ -39,8 +39,12 @@ import time
 import joblib
 import numpy as np
 import pandas as pd
-from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import StandardScaler
+
+try:
+    from imblearn.over_sampling import SMOTE
+except ModuleNotFoundError:
+    SMOTE = None
 
 
 TARGET_COLUMN = 'tr_status'
@@ -298,17 +302,44 @@ def scale_splits(train_df, validation_df, test_df, feature_columns):
 
 
 def balance_training_data(scaled_train, feature_columns):
-    """Apply SMOTE to the scaled training data only."""
+    """Balance the scaled training data only.
+
+    SMOTE is used when imbalanced-learn is installed. If it is unavailable,
+    the minority class is randomly upsampled so the rest of the pipeline still
+    runs cleanly in a fresh Python environment.
+    """
     x_train = scaled_train[feature_columns]
     y_train = scaled_train[TARGET_COLUMN]
 
-    smote = SMOTE(random_state=RANDOM_STATE)
-    x_balanced, y_balanced = smote.fit_resample(x_train, y_train)
+    if SMOTE is not None:
+        smote = SMOTE(random_state=RANDOM_STATE)
+        x_balanced, y_balanced = smote.fit_resample(x_train, y_train)
 
-    balanced_train = pd.DataFrame(x_balanced, columns=feature_columns)
-    balanced_train[TARGET_COLUMN] = y_balanced.astype(int)
+        balanced_train = pd.DataFrame(x_balanced, columns=feature_columns)
+        balanced_train[TARGET_COLUMN] = y_balanced.astype(int)
+        return balanced_train
 
-    return balanced_train
+    print('  [!] imbalanced-learn is not installed; using random upsampling instead.')
+    class_counts = y_train.value_counts()
+    max_count = int(class_counts.max())
+    balanced_parts = []
+
+    for label in class_counts.index:
+        label_rows = scaled_train[y_train == label]
+        replace = len(label_rows) < max_count
+        balanced_parts.append(
+            label_rows.sample(
+                n=max_count,
+                replace=replace,
+                random_state=RANDOM_STATE,
+            )
+        )
+
+    return (
+        pd.concat(balanced_parts, ignore_index=True)
+        .sample(frac=1.0, random_state=RANDOM_STATE)
+        .reset_index(drop=True)
+    )
 
 
 def print_target_summary(name, df):
